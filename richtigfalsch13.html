@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Knigge: Social Etiquette</title>
+    <style>
+        :root {
+            --primary: #4834d4;
+            --success: #2ecc71;
+            --error: #eb4d4b;
+            --bg: #f0f2f5;
+            --text: #130f40;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .quiz-card {
+            width: 100%;
+            max-width: 550px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #686de0;
+            margin-bottom: 10px;
+        }
+
+        .statement-box {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9ff;
+            border-radius: 15px;
+            border: 1px solid #e0e0ff;
+        }
+
+        .choice-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            color: white;
+        }
+
+        .choice-btn:active { transform: scale(0.95); }
+
+        .true-btn { background-color: var(--success); }
+        .false-btn { background-color: var(--error); }
+
+        .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #feedback {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 50px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .feedback-correct { background-color: #dff9fb; border: 1px solid var(--success); color: #0b5345; }
+        .feedback-wrong { background-color: #fff5f5; border: 1px solid var(--error); color: #78281f; }
+
+        .nav-btns {
+            margin-top: 25px;
+        }
+
+        #next-btn, #reset-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            display: none;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 480px) {
+            .choice-container { grid-template-columns: 1fr; }
+            .statement-box { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-card">
+    <div class="progress-text" id="progress">Behauptung 1 von 4</div>
+    <h2>Richtig oder Falsch?</h2>
+    
+    <div class="statement-box" id="statement">
+        Laden...
+    </div>
+
+    <div class="choice-container">
+        <button class="choice-btn true-btn" id="btn-true" onclick="handleAnswer(true)">Richtig</button>
+        <button class="choice-btn false-btn" id="btn-false" onclick="handleAnswer(false)">Falsch</button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div class="nav-btns">
+        <button id="next-btn" onclick="nextQuestion()">Nächste Frage</button>
+        <button id="reset-btn" onclick="resetQuiz()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            text: "Man kann „Отвали“ zu seinem Lehrer sagen, wenn man gerade konzentriert lernen will.",
+            answer: false,
+            feedback: "Falsch! „Отвали“ ist extrem unhöflich und gegenüber Respektspersonen völlig unangebracht."
+        },
+        {
+            text: "„Не мешай мне“ ist eine neutrale Art, jemanden zu bitten, mit dem Stören aufzuhören.",
+            answer: true,
+            feedback: "Richtig! Es ist eine sachliche Feststellung und im Alltag völlig okay."
+        },
+        {
+            text: "„Оставь меня в покое“ ist unhöflicher als „Не мешай мне“.",
+            answer: true,
+            feedback: "Richtig! Es ist emotionaler und nachdrücklicher – man fordert seine Ruhe ein."
+        },
+        {
+            text: "Unter sehr guten Freunden, die sich necken, wird „Отстань“ oft benutzt, ohne dass man wirklich böse ist.",
+            answer: true,
+            feedback: "Richtig! Im privaten Kontext unter Gleichaltrigen ist es eine normale, wenn auch genervte Reaktion."
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function initQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('statement').innerText = q.text;
+        document.getElementById('progress').innerText = `Behauptung ${currentIdx + 1} von ${questions.length}`;
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('btn-true').disabled = false;
+        document.getElementById('btn-false').disabled = false;
+    }
+
+    function handleAnswer(userAnswer) {
+        const q = questions[currentIdx];
+        const feedbackEl = document.getElementById('feedback');
+        
+        document.getElementById('btn-true').disabled = true;
+        document.getElementById('btn-false').disabled = true;
+
+        feedbackEl.style.display = 'block';
+        if (userAnswer === q.answer) {
+            feedbackEl.className = 'feedback-correct';
+            feedbackEl.innerHTML = "<strong>Korrekt!</strong><br>" + q.feedback;
+        } else {
+            feedbackEl.className = 'feedback-wrong';
+            feedbackEl.innerHTML = "<strong>Nicht ganz...</strong><br>" + q.feedback;
+        }
+
+        if (currentIdx < questions.length - 1) {
+            document.getElementById('next-btn').style.display = 'block';
+        } else {
+            document.getElementById('reset-btn').style.display = 'block';
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        initQuestion();
+    }
+
+    function resetQuiz() {
+        currentIdx = 0;
+        document.getElementById('reset-btn').style.display = 'none';
+        initQuestion();
+    }
+
+    // Start
+    initQuestion();
+</script>
+
+</body>
+</html>
