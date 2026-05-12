@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Simulator: Konsequenzen</title>
+    <style>
+        :root {
+            --video-bg: #000;
+            --ui-overlay: rgba(0, 0, 0, 0.7);
+            --primary: #3498db;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --text: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 640px;
+            aspect-ratio: 16 / 9;
+            background-color: var(--video-bg);
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Simulator Bild-Fläche */
+        .video-frame {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 5rem;
+            transition: background 0.5s;
+        }
+
+        .subtitle {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ui-overlay);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            width: 80%;
+            text-align: center;
+        }
+
+        /* Overlay für Entscheidungen */
+        .decision-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .decision-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 70%;
+        }
+
+        .choice-btn {
+            padding: 15px;
+            border: 2px solid var(--text);
+            background: transparent;
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .choice-btn:hover {
+            background: var(--text);
+            color: #000;
+        }
+
+        #restart-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary);
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .decision-title { font-size: 1.1rem; }
+            .choice-btn { font-size: 1rem; padding: 10px; }
+            .video-frame { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="video-container">
+    <div class="video-frame" id="scene-image">👨‍💻</div>
+    <div class="subtitle" id="subtitle-text">Du arbeitest an einem Projekt. Dein Freund stört dich ständig...</div>
+
+    <div class="decision-overlay" id="decision-box">
+        <div class="decision-title">Wähle deine Reaktion:</div>
+        <div class="btn-group">
+            <button class="choice-btn" onclick="makeChoice('polite')">Оставь меня в покое</button>
+            <button class="choice-btn" onclick="makeChoice('rude')">Отвали</button>
+        </div>
+    </div>
+    
+    <button id="restart-btn" onclick="resetSimulator()" style="position: absolute; top: 10px; right: 10px; z-index: 20;">Neustart</button>
+</div>
+
+<script>
+    const scenes = {
+        start: {
+            img: "👨‍💻",
+            text: "Du arbeitest konzentriert. Ein Freund kommt rein und macht laute Musik an.",
+            timeout: 3000,
+            next: 'decision'
+        },
+        decision: {
+            isDecision: true
+        },
+        polite_outcome: {
+            img: "🤝",
+            text: "Dein Freund versteht es. Er sagt 'Entschuldigung' und macht die Musik leiser.",
+            bg: "#273c75"
+        },
+        rude_outcome: {
+            img: "😡",
+            text: "Dein Freund ist beleidigt. Er knallt die Tür zu. Die Stimmung ist im Keller.",
+            bg: "#c0392b"
+        }
+    };
+
+    function startScene(sceneKey) {
+        const scene = scenes[sceneKey];
+        const frame = document.getElementById('scene-image');
+        const sub = document.getElementById('subtitle-text');
+        const overlay = document.getElementById('decision-box');
+        const restart = document.getElementById('restart-btn');
+
+        if (scene.isDecision) {
+            overlay.style.display = 'flex';
+            return;
+        }
+
+        overlay.style.display = 'none';
+        frame.innerText = scene.img;
+        sub.innerText = scene.text;
+        if(scene.bg) frame.style.background = scene.bg;
+
+        if (scene.timeout) {
+            setTimeout(() => {
+                startScene(scene.next);
+            }, scene.timeout);
+        } else {
+            restart.style.display = 'block';
+        }
+    }
+
+    function makeChoice(type) {
+        if (type === 'polite') {
+            startScene('polite_outcome');
+        } else {
+            startScene('rude_outcome');
+        }
+    }
+
+    function resetSimulator() {
+        document.getElementById('restart-btn').style.display = 'none';
+        document.getElementById('scene-image').style.background = 'black';
+        startScene('start');
+    }
+
+    // Start des Simulators
+    startScene('start');
+</script>
+
+</body>
+</html>
