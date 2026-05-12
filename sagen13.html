@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Quiz: Wer würde das sagen?</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --success: #10b981;
+            --error: #ef4444;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-sub);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .scenario-box {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .scenario-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+
+        .scenario-desc {
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        @media (hover: hover) {
+            .option-btn:hover {
+                border-color: var(--primary);
+                background: #eff6ff;
+            }
+        }
+
+        .option-btn.correct {
+            background-color: #d1fae5;
+            border-color: var(--success);
+            color: #065f46;
+        }
+
+        .option-btn.wrong {
+            background-color: #fee2e2;
+            border-color: var(--error);
+            color: #991b1b;
+        }
+
+        .feedback-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            min-height: 24px;
+            display: none;
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .next-btn { background: var(--primary); color: white; display: none; }
+        .restart-btn { background: #475569; color: white; display: none; }
+
+        .progress-indicator {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>Wer würde das sagen?</h1>
+    <p class="subtitle">Wähle die passende Reaktion für die beschriebene Situation.</p>
+
+    <div id="quiz-box">
+        <div class="scenario-box">
+            <span class="scenario-title" id="scen-label">Szenario</span>
+            <div class="scenario-desc" id="scen-text">Dein kleiner Bruder nervt dich ständig, während du konzentriert ein Videospiel spielst.</div>
+        </div>
+
+        <div class="options-list" id="options">
+            <!-- Buttons via JS -->
+        </div>
+    </div>
+
+    <div id="feedback" class="feedback-area"></div>
+
+    <div class="controls">
+        <button id="next-btn" class="nav-btn next-btn" onclick="nextQuestion()">Nächste Situation</button>
+        <button id="restart-btn" class="nav-btn restart-btn" onclick="restartQuiz()">Neustart</button>
+    </div>
+
+    <div class="progress-indicator" id="progress">Situation 1 von 4</div>
+</div>
+
+<script>
+    const questions = [
+        {
+            scenario: "Dein kleiner Bruder nervt dich ständig, während du konzentriert ein Videospiel spielst. Du bist genervt.",
+            options: ["Не мешай мне", "Оставь меня в покое", "Отстань"],
+            correct: 2,
+            explanation: "Richtig! Unter Geschwistern ist 'Отстань' (Lass mich!) sehr gebräuchlich, wenn man genervt ist."
+        },
+        {
+            scenario: "Ein fremder Betrunkener spricht dich auf der Straße unhöflich an und geht nicht weg. Du willst ihn grob abweisen.",
+            options: ["Не мешай мне", "Отвали", "Оставь меня в покое"],
+            correct: 1,
+            explanation: "Genau. 'Отвали' ist sehr direkt und unhöflich – passend, wenn Höflichkeit keine Rolle mehr spielt."
+        },
+        {
+            scenario: "Du arbeitest konzentriert in der Schule. Ein Freund fragt dich etwas Unwichtiges. Du willst höflich bleiben.",
+            options: ["Отстань", "Не мешай мне", "Отвали"],
+            correct: 1,
+            explanation: "Korrekt. 'Не meшай мне' ist die neutrale Art zu sagen: Stör mich bitte gerade nicht."
+        },
+        {
+            scenario: "Jemand verfolgt dich mit Fragen, obwohl du klar gesagt hast, dass du nicht reden willst. Du wirst sehr bestimmt.",
+            options: ["Оставь меня в покое", "Не мешай мне", "Привет"],
+            correct: 0,
+            explanation: "Richtig. 'Оставь меня в покое' ist die klassische Forderung, in Ruhe gelassen zu werden."
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function loadQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('scen-text').innerText = q.scenario;
+        document.getElementById('progress').innerText = `Situation ${currentIdx + 1} von ${questions.length}`;
+        
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+        
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(idx);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected) {
+        const q = questions[currentIdx];
+        const buttons = document.querySelectorAll('.option-btn');
+        const feedback = document.getElementById('feedback');
+        
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selected === q.correct) {
+            buttons[selected].classList.add('correct');
+            feedback.style.display = 'block';
+            feedback.style.backgroundColor = '#d1fae5';
+            feedback.style.color = '#065f46';
+            feedback.innerText = q.explanation;
+        } else {
+            buttons[selected].classList.add('wrong');
+            buttons[q.correct].classList.add('correct');
+            feedback.style.display = 'block';
+            feedback.style.backgroundColor = '#fee2e2';
+            feedback.style.color = '#991b1b';
+            feedback.innerText = "Nicht ganz. Überlege, wie nah oder distanziert die Beziehung ist.";
+        }
+
+        if (currentIdx < questions.length - 1) {
+            document.getElementById('next-btn').style.display = 'block';
+        } else {
+            document.getElementById('restart-btn').style.display = 'block';
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        loadQuestion();
+    }
+
+    function restartQuiz() {
+        currentIdx = 0;
+        document.getElementById('restart-btn').style.display = 'none';
+        loadQuestion();
+    }
+
+    // Init
+    loadQuestion();
+</script>
+
+</body>
+</html>
