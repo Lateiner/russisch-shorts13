@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Memory: Abweisungen</title>
+    <style>
+        :root {
+            --primary: #4a69bd;
+            --bg: #f1f2f6;
+            --card-back: #2f3542;
+            --card-front: #ffffff;
+            --success: #7bed9f;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; font-size: 1.5rem; text-align: center; }
+        
+        .stats { margin-bottom: 20px; font-weight: bold; color: #57606f; }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 500px;
+            perspective: 1000px;
+        }
+
+        /* Responsives Grid für kleinere Bildschirme */
+        @media (max-width: 400px) {
+            .memory-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .memory-card {
+            aspect-ratio: 1 / 1;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s, opacity 1s; /* Opacity für das Verschwinden */
+        }
+
+        .memory-card.flipped { transform: rotateY(180deg); }
+        
+        .memory-card.matched {
+            opacity: 0;
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 5px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .card-back {
+            background-color: var(--card-back);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .card-front {
+            background-color: var(--card-front);
+            color: var(--card-back);
+            transform: rotateY(180deg);
+        }
+
+        .icon-card { font-size: 2.5rem; }
+
+        #reset-btn {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        #reset-btn:hover { background-color: #1e3799; }
+    </style>
+</head>
+<body>
+
+    <h1>Abweisungs-Memory</h1>
+    <div class="stats">Versuche: <span id="moves">0</span></div>
+
+    <div class="memory-grid" id="grid">
+        <!-- Karten werden per JS generiert -->
+    </div>
+
+    <button id="reset-btn" onclick="initGame()">Neustart</button>
+
+<script>
+    const cardData = [
+        { id: 1, content: "Не мешай мне", type: "text" },
+        { id: 1, content: "✋", type: "icon" }, // Stopp/Neutral
+        { id: 2, content: "Оставь меня в покое", type: "text" },
+        { id: 2, content: "🧘‍♂️", type: "icon" }, // Ruhe suchen
+        { id: 3, content: "Отстань", type: "text" },
+        { id: 3, content: "😤", type: "icon" }, // Genervt
+        { id: 4, content: "Отвали", type: "text" },
+        { id: 4, content: "⚡", type: "icon" }  // Blitz/Aggressiv
+    ];
+
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let isLock = false;
+
+    function initGame() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        flippedCards = [];
+        matchedPairs = 0;
+        moves = 0;
+        isLock = false;
+        document.getElementById('moves').innerText = moves;
+
+        // Karten mischen
+        const shuffledCards = [...cardData].sort(() => Math.random() - 0.5);
+
+        shuffledCards.forEach(data => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.id = data.id;
+
+            card.innerHTML = `
+                <div class="card-face card-back">?</div>
+                <div class="card-face card-front ${data.type === 'icon' ? 'icon-card' : ''}">
+                    ${data.content}
+                </div>
+            `;
+
+            card.addEventListener('click', flipCard);
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard() {
+        if (isLock || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+        this.classList.add('flipped');
+        flippedCards.push(this);
+
+        if (flippedCards.length === 2) {
+            moves++;
+            document.getElementById('moves').innerText = moves;
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [card1, card2] = flippedCards;
+        const isMatch = card1.dataset.id === card2.dataset.id;
+
+        if (isMatch) {
+            matchedPairs++;
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            resetFlipped();
+            if (matchedPairs === cardData.length / 2) {
+                setTimeout(() => alert(`Super! Gefunden in ${moves} Versuchen.`), 1200);
+            }
+        } else {
+            isLock = true;
+            setTimeout(() => {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                resetFlipped();
+            }, 1000);
+        }
+    }
+
+    function resetFlipped() {
+        flippedCards = [];
+        isLock = false;
+    }
+
+    // Spielstart
+    initGame();
+</script>
+
+</body>
+</html>
