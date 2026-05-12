@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Übung: Kontext-Check</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #4a90e2;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 25%;
+            transition: width 0.4s ease;
+        }
+
+        .scenario-card {
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .scenario-image {
+            font-size: 80px; /* Platzhalter für Bilder */
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .scenario-text {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dee2e6;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
+
+        @media (hover: hover) {
+            .option-btn:hover {
+                border-color: var(--primary);
+                background-color: #f0f7ff;
+            }
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda !important;
+            border-color: var(--success) !important;
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background-color: #f8d7da !important;
+            border-color: var(--error) !important;
+            color: #721c24;
+        }
+
+        #feedback-area {
+            margin-top: 20px;
+            min-height: 40px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #next-btn, #restart-btn {
+            display: none;
+            margin: 20px auto 0;
+            padding: 12px 30px;
+            background: var(--text);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Kontext-Check</h1>
+        <p>Wähle den Satz, der zur Situation passt.</p>
+    </div>
+
+    <div class="progress-bar">
+        <div id="progress-fill"></div>
+    </div>
+
+    <div id="quiz-content">
+        <div class="scenario-card">
+            <div class="scenario-image" id="scen-img">📚</div>
+            <div class="scenario-text" id="scen-desc">Du lernst in der Bibliothek. Jemand flüstert laut neben dir. Was sagst du höflich?</div>
+            
+            <div class="options-container" id="options">
+                <!-- Buttons werden per JS eingefügt -->
+            </div>
+        </div>
+    </div>
+
+    <div id="feedback-area"></div>
+    <button id="next-btn" onclick="loadNext()">Nächste Frage</button>
+    <button id="restart-btn" onclick="restartQuiz()">Neustart</button>
+</div>
+
+<script>
+    const questions = [
+        {
+            img: "📚",
+            desc: "Situation: Bibliothek. Du versuchst dich zu konzentrieren, aber jemand stört dich leicht.",
+            options: ["Не мешай мне", "Отвали", "Отстань"],
+            correct: 0,
+            feedback: "Richtig! 'Не мешай мне' ist die neutralste Form."
+        },
+        {
+            img: "🏢",
+            desc: "Situation: Im Büro. Ein Kollege unterbricht dich zum dritten Mal bei einer wichtigen Aufgabe.",
+            options: ["Отвали", "Оставь меня в покое", "Не мешай мне"],
+            correct: 1,
+            feedback: "Korrekt! 'Lass mich in Ruhe' ist hier bestimmt, aber noch professionell."
+        },
+        {
+            img: "🥊",
+            desc: "Situation: Auf dem Schulhof. Jemand provoziert dich massiv und hört nicht auf.",
+            options: ["Не мешай мне", "Оставь меня в покое", "Отстань"],
+            correct: 2,
+            feedback: "Richtig! 'Отстань' zeigt deutlich, dass du genervt bist."
+        },
+        {
+            img: "😡",
+            desc: "Situation: Ein heftiger Streit. Du willst, dass die Person sofort verschwindet.",
+            options: ["Не мешай мне", "Отвали", "Оставь меня в покое"],
+            correct: 1,
+            feedback: "Genau. 'Отвали' ist sehr unhöflich und signalisiert Aggression."
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function displayQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('scen-img').innerText = q.img;
+        document.getElementById('scen-desc').innerText = q.desc;
+        document.getElementById('feedback-area').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+        
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = "";
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, q.correct, q.feedback);
+            optionsDiv.appendChild(btn);
+        });
+
+        updateProgress();
+    }
+
+    function checkAnswer(selected, correct, feedbackText) {
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        if (selected === correct) {
+            buttons[selected].classList.add('correct');
+            document.getElementById('feedback-area').innerHTML = `<span style="color:var(--success)">${feedbackText}</span>`;
+        } else {
+            buttons[selected].classList.add('wrong');
+            buttons[correct].classList.add('correct');
+            document.getElementById('feedback-area').innerHTML = `<span style="color:var(--error)">Nicht ganz passend für diesen Kontext.</span>`;
+        }
+
+        if (currentIdx < questions.length - 1) {
+            document.getElementById('next-btn').style.display = "block";
+        } else {
+            document.getElementById('restart-btn').style.display = "block";
+            document.getElementById('feedback-area').innerHTML += "<br>Super! Du hast alle Situationen gemeistert.";
+        }
+    }
+
+    function loadNext() {
+        currentIdx++;
+        displayQuestion();
+    }
+
+    function restartQuiz() {
+        currentIdx = 0;
+        document.getElementById('restart-btn').style.display = "none";
+        displayQuestion();
+    }
+
+    function updateProgress() {
+        const percent = ((currentIdx + 1) / questions.length) * 100;
+        document.getElementById('progress-fill').style.width = percent + "%";
+    }
+
+    // Initialstart
+    displayQuestion();
+</script>
+
+</body>
+</html>
