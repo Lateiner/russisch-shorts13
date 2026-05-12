@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Übung: Chat-Lückentext</title>
+    <style>
+        :root {
+            --chat-bg: #e5ddd5;
+            --msg-in: #ffffff;
+            --msg-out: #dcf8c6;
+            --primary: #075e54;
+            --text: #262626;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--chat-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 8px solid #333;
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .chat-window {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            min-height: 400px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            position: relative;
+            line-height: 1.4;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+
+        .received {
+            background: var(--msg-in);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .sent {
+            background: var(--msg-out);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        select {
+            padding: 5px;
+            border: 2px solid var(--primary);
+            border-radius: 5px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .correct-select {
+            background-color: #c8e6c9 !important;
+            border-color: #2e7d32 !important;
+        }
+
+        .wrong-select {
+            background-color: #ffcdd2 !important;
+            border-color: #c62828 !important;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+
+        #feedback {
+            margin-bottom: 10px;
+            font-weight: bold;
+            min-height: 1.2rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        #check-btn { background: var(--primary); }
+        #reset-btn { background: #555; }
+
+        button:hover { opacity: 0.9; }
+
+        @media (max-width: 480px) {
+            body { padding: 0; }
+            .phone-container { border: none; border-radius: 0; height: 100vh; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="chat-header">Russisch-Kurs: Chat-Eskalation</div>
+    
+    <div class="chat-window">
+        <div class="message received">Привет! Что делаешь? Пойдем гулять!</div>
+        <div class="message sent">
+            Я сейчас работаю. Пожалуйста, 
+            <select class="gap" data-answer="Не мешай мне">
+                <option value="">-- wählen --</option>
+                <option value="Не мешай мне">Не мешай мне</option>
+                <option value="Отвали">Отвали</option>
+                <option value="Привет">Привет</option>
+            </select>.
+        </div>
+
+        <div class="message received">Ну только на 5 минут! Это очень важно!</div>
+        <div class="message sent">
+            Я же сказал, я занят! 
+            <select class="gap" data-answer="Оставь меня в покое">
+                <option value="">-- wählen --</option>
+                <option value="Отстань">Отстань</option>
+                <option value="Оставь меня в покое">Оставь меня в покое</option>
+                <option value="Добрый день">Добрый день</option>
+            </select>!
+        </div>
+
+        <div class="message received">Почему ты такой скучный сегодня? Ответь!</div>
+        <div class="message sent">
+            Слушай, ты надоел! 
+            <select class="gap" data-answer="Отвали">
+                <option value="">-- wählen --</option>
+                <option value="Не мешай мне">Не meшай мне</option>
+                <option value="Отвали">Отвали</option>
+                <option value="Спасибо">Спасибо</option>
+            </select>!!!
+        </div>
+    </div>
+
+    <div class="controls">
+        <div id="feedback"></div>
+        <div class="btn-group">
+            <button id="check-btn" onclick="checkGaps()">Prüfen</button>
+            <button id="reset-btn" onclick="resetExercise()">Neustart</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function checkGaps() {
+        const gaps = document.querySelectorAll('.gap');
+        let allCorrect = true;
+        let count = 0;
+
+        gaps.forEach(select => {
+            if (select.value === select.dataset.answer) {
+                select.className = 'gap correct-select';
+                count++;
+            } else {
+                if (select.value !== "") {
+                    select.className = 'gap wrong-select';
+                }
+                allCorrect = false;
+            }
+        });
+
+        const feedback = document.getElementById('feedback');
+        if (allCorrect) {
+            feedback.innerHTML = `<span style="color: #2e7d32;">Hervorragend! Du hast alle Stufen richtig gewählt.</span>`;
+            document.getElementById('check-btn').style.display = 'none';
+        } else {
+            feedback.innerHTML = `<span style="color: #c62828;">${count} von 3 richtig. Überprüfe die Höflichkeitsstufen!</span>`;
+        }
+    }
+
+    function resetExercise() {
+        const gaps = document.querySelectorAll('.gap');
+        gaps.forEach(select => {
+            select.value = "";
+            select.className = "gap";
+        });
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('check-btn').style.display = 'inline-block';
+    }
+</script>
+
+</body>
+</html>
