@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Übung: Jemanden abweisen</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f4f7f6;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        p.instruction {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .exercise-grid {
+                grid-template-columns: 1fr;
+            }
+            .target-zone {
+                margin-bottom: 10px;
+            }
+        }
+
+        .source-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .draggable {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            user-select: none;
+            transition: transform 0.2s, background-color 0.2s;
+            touch-action: none; /* Wichtig für Mobile */
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .drop-zone-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .target-pair {
+            display: flex;
+            flex-direction: column;
+            background: #eee;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px dashed #ccc;
+            min-height: 80px;
+        }
+
+        .target-label {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+
+        .drop-zone {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+
+        .correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color);
+        }
+
+        .wrong {
+            background-color: var(--error-color) !important;
+        }
+
+        button#reset-btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 10px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button#reset-btn:hover {
+            background-color: #34495e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Ausdrücke zuordnen</h1>
+    <p class="instruction">Ziehe die russischen Kacheln auf die richtige deutsche Übersetzung.</p>
+
+    <div class="exercise-grid">
+        <!-- Russische Wörter -->
+        <div class="source-container" id="source-container">
+            <div class="draggable" draggable="true" id="term-1" data-match="ans-1">Не мешай мне</div>
+            <div class="draggable" draggable="true" id="term-2" data-match="ans-2">Оставь меня в покое</div>
+            <div class="draggable" draggable="true" id="term-3" data-match="ans-3">Отстань</div>
+            <div class="draggable" draggable="true" id="term-4" data-match="ans-4">Отвали</div>
+        </div>
+
+        <!-- Zielzonen -->
+        <div class="drop-zone-wrapper">
+            <div class="target-pair">
+                <div class="target-label">„Stör mich nicht“</div>
+                <div class="drop-zone" id="ans-1" data-expected="term-1"></div>
+            </div>
+            <div class="target-pair">
+                <div class="target-label">„Lass mich in Ruhe“</div>
+                <div class="drop-zone" id="ans-2" data-expected="term-2"></div>
+            </div>
+            <div class="target-pair">
+                <div class="target-label">„Geh weg / Lass mich“</div>
+                <div class="drop-zone" id="ans-3" data-expected="term-3"></div>
+            </div>
+            <div class="target-pair">
+                <div class="target-label">„Hau ab / Verpiss dich“</div>
+                <div class="drop-zone" id="ans-4" data-expected="term-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <button id="reset-btn" onclick="resetExercise()">Neustart</button>
+</div>
+
+<script>
+    const draggables = document.querySelectorAll('.draggable');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const sourceContainer = document.getElementById('source-container');
+
+    // Drag and Drop Logik
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            draggable.classList.add('dragging');
+        });
+
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging');
+            checkWin();
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('over');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('over');
+        });
+
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            
+            // Prüfen, ob die Zone leer ist
+            if (zone.children.length === 0) {
+                zone.appendChild(draggable);
+                validate(draggable, zone);
+            }
+        });
+    });
+
+    function validate(element, zone) {
+        if (zone.dataset.expected === element.id) {
+            element.classList.add('correct');
+            element.classList.remove('wrong');
+            element.setAttribute('draggable', 'false');
+        } else {
+            element.classList.add('wrong');
+            // Nach kurzer Zeit zurückschicken, wenn falsch
+            setTimeout(() => {
+                element.classList.remove('wrong');
+                sourceContainer.appendChild(element);
+            }, 800);
+        }
+    }
+
+    function resetExercise() {
+        location.reload();
+    }
+
+    function checkWin() {
+        const correctItems = document.querySelectorAll('.correct');
+        if (correctItems.length === 4) {
+            setTimeout(() => alert('Gut gemacht! Du hast alle Stufen der Abweisung gelernt.'), 300);
+        }
+    }
+
+    // Touch-Unterstützung für Smartphones
+    draggables.forEach(item => {
+        item.addEventListener('touchstart', touchStart);
+        item.addEventListener('touchmove', touchMove);
+        item.addEventListener('touchend', touchEnd);
+    });
+
+    let activeItem = null;
+
+    function touchStart(e) {
+        activeItem = e.target;
+        activeItem.classList.add('dragging');
+    }
+
+    function touchMove(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        activeItem.style.position = 'absolute';
+        activeItem.style.left = touch.pageX - activeItem.offsetWidth / 2 + 'px';
+        activeItem.style.top = touch.pageY - activeItem.offsetHeight / 2 + 'px';
+        activeItem.style.zIndex = '1000';
+    }
+
+    function touchEnd(e) {
+        activeItem.classList.remove('dragging');
+        activeItem.style.position = 'static';
+        activeItem.style.zIndex = 'auto';
+
+        const touch = e.changedTouches[0];
+        const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+        const zone = targetElement?.closest('.drop-zone');
+
+        if (zone && zone.children.length === 0) {
+            zone.appendChild(activeItem);
+            validate(activeItem, zone);
+            checkWin();
+        } else {
+            sourceContainer.appendChild(activeItem);
+        }
+        activeItem = null;
+    }
+
+    // Mischen der russischen Wörter beim Start
+    (function shuffle() {
+        const items = Array.from(sourceContainer.children);
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            sourceContainer.appendChild(items[j]);
+        }
+    })();
+</script>
+
+</body>
+</html>
