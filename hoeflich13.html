@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Übung: Höflichkeits-Barometer</title>
+    <style>
+        :root {
+            --neutral: #3498db;
+            --unpolite: #e67e22;
+            --rude: #e74c3c;
+            --bg-color: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .term-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            min-height: 3rem;
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slider-container {
+            margin: 40px 0;
+            position: relative;
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            height: 10px;
+            accent-color: var(--neutral);
+        }
+
+        .labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .label-neutral { color: var(--neutral); }
+        .label-rude { color: var(--rude); }
+
+        .feedback {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 1.5rem;
+        }
+
+        .btn-container {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #check-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        #check-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        #reset-btn {
+            background-color: #34495e;
+            color: white;
+            display: none; /* Erst am Ende anzeigen */
+        }
+
+        .success-text { color: #27ae60; }
+        .error-text { color: #e74c3c; }
+
+        .progress {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress" id="progress">Begriff 1 von 4</div>
+    <h1>Höflichkeits-Barometer</h1>
+    <p>Wie unhöflich ist dieser Ausdruck? Schiebe den Regler an die richtige Stelle.</p>
+
+    <div class="term-display" id="current-term">Не мешай мне</div>
+
+    <div class="slider-container">
+        <input type="range" id="polite-slider" min="1" max="4" value="1" step="1">
+        <div class="labels">
+            <span class="label-neutral">Neutral</span>
+            <span class="label-rude">Sehr unhöflich</span>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="btn-container">
+        <button id="check-btn" onclick="checkAnswer()">Antwort prüfen</button>
+        <button id="reset-btn" onclick="resetExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const data = [
+        { term: "Не мешай мне", value: 1, text: "Korrekt! Das ist eine neutrale Bitte." },
+        { term: "Оставь меня в покое", value: 2, text: "Richtig! Bestimmt, aber noch im Rahmen." },
+        { term: "Отстань", value: 3, text: "Genau! Das ist bereits ziemlich unhöflich." },
+        { term: "Отвали", value: 4, text: "Absolut! Das ist sehr grober Slang." }
+    ];
+
+    let currentIndex = 0;
+    const termDisplay = document.getElementById('current-term');
+    const slider = document.getElementById('polite-slider');
+    const feedback = document.getElementById('feedback');
+    const progress = document.getElementById('progress');
+    const checkBtn = document.getElementById('check-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    function checkAnswer() {
+        const userValue = parseInt(slider.value);
+        const correctAnswer = data[currentIndex];
+
+        if (userValue === correctAnswer.value) {
+            feedback.innerHTML = `<span class="success-text">${correctAnswer.text}</span>`;
+            checkBtn.disabled = true;
+            
+            setTimeout(() => {
+                nextTerm();
+            }, 1800);
+        } else {
+            feedback.innerHTML = `<span class="error-text">Nicht ganz. Probiere eine andere Position!</span>`;
+        }
+    }
+
+    function nextTerm() {
+        currentIndex++;
+        if (currentIndex < data.length) {
+            termDisplay.innerText = data[currentIndex].term;
+            slider.value = 1;
+            slider.style.accentColor = "var(--neutral)";
+            feedback.innerHTML = "";
+            progress.innerText = `Begriff ${currentIndex + 1} von ${data.length}`;
+            checkBtn.disabled = false;
+        } else {
+            termDisplay.innerText = "Geschafft!";
+            feedback.innerHTML = "<span class='success-text'>Du hast alle Nuancen korrekt eingeordnet!</span>";
+            progress.innerText = "Lektion beendet";
+            
+            // Buttons tauschen
+            checkBtn.style.display = "none";
+            resetBtn.style.display = "block";
+            slider.disabled = true;
+        }
+    }
+
+    function resetExercise() {
+        currentIndex = 0;
+        termDisplay.innerText = data[0].term;
+        slider.value = 1;
+        slider.disabled = false;
+        slider.style.accentColor = "var(--neutral)";
+        feedback.innerHTML = "";
+        progress.innerText = `Begriff 1 von ${data.length}`;
+        
+        checkBtn.style.display = "block";
+        checkBtn.disabled = false;
+        resetBtn.style.display = "none";
+    }
+
+    // Slider-Farbe dynamisch anpassen während der Auswahl
+    slider.addEventListener('input', () => {
+        feedback.innerHTML = "";
+        const val = slider.value;
+        let color = "var(--neutral)";
+        if(val == 2) color = "#f1c40f"; // Gelb
+        if(val == 3) color = "var(--unpolite)"; // Orange
+        if(val == 4) color = "var(--rude)"; // Rot
+        slider.style.accentColor = color;
+    });
+</script>
+
+</body>
+</html>
